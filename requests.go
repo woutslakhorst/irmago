@@ -82,14 +82,19 @@ type CredentialRequest struct {
 
 // ServerJwt contains standard JWT fields.
 type ServerJwt struct {
-	Type       string    `json:"sub"`
-	ServerName string    `json:"iss"`
-	IssuedAt   Timestamp `json:"iat"`
+	Type       string     `json:"sub"`
+	ServerName string     `json:"iss"`
+	IssuedAt   *Timestamp `json:"iat"`
+}
+
+func (jwt ServerJwt) Valid() error {
+	return errors.New("not implemented")
 }
 
 // A ServiceProviderRequest contains a disclosure request.
 type ServiceProviderRequest struct {
-	Request *DisclosureRequest `json:"request"`
+	Validity int                `json:"validity"`
+	Request  *DisclosureRequest `json:"request"`
 }
 
 // A SignatureRequestorRequest contains a signing request.
@@ -136,6 +141,12 @@ type IrmaSession interface {
 
 // Timestamp is a time.Time that marshals to Unix timestamps.
 type Timestamp time.Time
+
+// Return the current time as a Timestamp value.
+func TimestampNow() *Timestamp {
+	t := time.Now()
+	return (*Timestamp)(&t)
+}
 
 func (cr *CredentialRequest) Info(conf *Configuration, metadataVersion byte) (*CredentialInfo, error) {
 	list, err := cr.AttributeList(conf, metadataVersion)
@@ -380,7 +391,7 @@ func NewServiceProviderJwt(servername string, dr *DisclosureRequest) *ServicePro
 	return &ServiceProviderJwt{
 		ServerJwt: ServerJwt{
 			ServerName: servername,
-			IssuedAt:   Timestamp(time.Now()),
+			IssuedAt:   TimestampNow(),
 			Type:       "verification_request",
 		},
 		Request: ServiceProviderRequest{Request: dr},
@@ -392,7 +403,7 @@ func NewSignatureRequestorJwt(servername string, sr *SignatureRequest) *Signatur
 	return &SignatureRequestorJwt{
 		ServerJwt: ServerJwt{
 			ServerName: servername,
-			IssuedAt:   Timestamp(time.Now()),
+			IssuedAt:   TimestampNow(),
 			Type:       "signature_request",
 		},
 		Request: SignatureRequestorRequest{Request: sr},
@@ -404,7 +415,7 @@ func NewIdentityProviderJwt(servername string, ir *IssuanceRequest) *IdentityPro
 	return &IdentityProviderJwt{
 		ServerJwt: ServerJwt{
 			ServerName: servername,
-			IssuedAt:   Timestamp(time.Now()),
+			IssuedAt:   TimestampNow(),
 			Type:       "issue_request",
 		},
 		Request: IdentityProviderRequest{Request: ir},
