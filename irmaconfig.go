@@ -311,6 +311,8 @@ func (conf *Configuration) Prune() {
 func (conf *Configuration) parseIssuerFolders(manager *SchemeManager, path string) error {
 	return iterateSubfolders(path, func(dir string) error {
 		issuer := &Issuer{}
+
+asfasfas
 		log.Printf("WOUT parsing description in %s", dir)
 		exists, err := conf.pathToDescription(manager, dir+"/description.xml", issuer)
 		if err != nil {
