@@ -32,6 +32,7 @@ import (
 	"github.com/go-errors/errors"
 	"github.com/mhe/gabi"
 	"github.com/privacybydesign/irmago/internal/fs"
+	"log"
 )
 
 // Configuration keeps track of scheme managers, issuers, credential types and public keys,
@@ -310,6 +311,7 @@ func (conf *Configuration) Prune() {
 func (conf *Configuration) parseIssuerFolders(manager *SchemeManager, path string) error {
 	return iterateSubfolders(path, func(dir string) error {
 		issuer := &Issuer{}
+		log.Printf("WOUT parsing description in %s", dir)
 		exists, err := conf.pathToDescription(manager, dir+"/description.xml", issuer)
 		if err != nil {
 			return err
@@ -320,11 +322,12 @@ func (conf *Configuration) parseIssuerFolders(manager *SchemeManager, path strin
 		if issuer.XMLVersion < 4 {
 			return errors.New("Unsupported issuer description")
 		}
-
+		log.Printf("WOUT checking issuer: %s", issuer.ID)
 		if err = conf.checkIssuer(manager, issuer, dir); err != nil {
 			return err
 		}
 
+		log.Printf("WOUT adding issuer to map")
 		conf.Issuers[issuer.Identifier()] = issuer
 		issuer.Valid = conf.SchemeManagers[issuer.SchemeManagerIdentifier()].Valid
 		return conf.parseCredentialsFolder(manager, issuer, dir+"/Issues/")
@@ -414,6 +417,7 @@ func (conf *Configuration) parseCredentialsFolder(manager *SchemeManager, issuer
 	var foundcred bool
 	err := iterateSubfolders(path, func(dir string) error {
 		cred := &CredentialType{}
+		log.Printf("WOUT parsing Issues in %s", dir)
 		exists, err := conf.pathToDescription(manager, dir+"/description.xml", cred)
 		if err != nil {
 			return err
@@ -421,6 +425,7 @@ func (conf *Configuration) parseCredentialsFolder(manager *SchemeManager, issuer
 		if !exists {
 			return nil
 		}
+		log.Printf("WOUT checking credential %s", cred.ID)
 		if err = conf.checkCredentialType(manager, issuer, cred, dir); err != nil {
 			return err
 		}
